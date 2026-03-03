@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Hunter</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#111;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+h1{
+    margin-top:20px;
+}
+
+#info{
+    margin:10px;
+}
+
+#grid{
+    display:grid;
+    gap:10px;
+    margin-top:20px;
+}
+
+.cell{
+    width:80px;
+    height:80px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:transform 0.2s;
+}
+
+.cell:hover{
+    transform:scale(1.05);
+}
+
+button{
+    margin-top:20px;
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    background:#00c3ff;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎨 Color Hunter</h1>
+<div id="info">
+Niveau : <span id="level">1</span> |
+Score : <span id="score">0</span>
+</div>
+
+<div id="grid"></div>
+
+<button onclick="startGame()">Rejouer</button>
+
+<script>
+let level = 1;
+let score = 0;
+let gridSize = 3;
+
+function randomColor(){
+    return Math.floor(Math.random()*256);
+}
+
+function startGame(){
+    document.getElementById("grid").innerHTML="";
+    document.getElementById("level").textContent=level;
+    document.getElementById("score").textContent=score;
+
+    if(level % 5 === 0 && gridSize < 6){
+        gridSize++;
+    }
+
+    const grid = document.getElementById("grid");
+    grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+    let r = randomColor();
+    let g = randomColor();
+    let b = randomColor();
+
+    let diff = Math.max(50 - level*3, 5);
+
+    let specialIndex = Math.floor(Math.random() * (gridSize*gridSize));
+
+    for(let i=0;i<gridSize*gridSize;i++){
+        let cell = document.createElement("div");
+        cell.classList.add("cell");
+
+        if(i === specialIndex){
+            cell.style.backgroundColor = `rgb(${r+diff}, ${g}, ${b})`;
+            cell.onclick = win;
+        }else{
+            cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            cell.onclick = lose;
+        }
+
+        grid.appendChild(cell);
+    }
+}
+
+function win(){
+    score += 10;
+    level++;
+    startGame();
+}
+
+function lose(){
+    alert("Game Over !");
+    level = 1;
+    score = 0;
+    gridSize = 3;
+    startGame();
+}
+
+startGame();
+</script>
+
+</body>
+</html>
