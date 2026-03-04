@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Color Hunter</title>
+<title>Color Hunter - Version Finale</title>
 
 <style>
 body{
@@ -31,11 +31,11 @@ h1{
 }
 
 .cell{
-    width:80px;
-    height:80px;
-    border-radius:12px;
+    width: calc(50px + 5 * var(--grid-size));
+    height: calc(50px + 5 * var(--grid-size));
     cursor:pointer;
-    transition:transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
 }
 
 .cell:hover{
@@ -51,6 +51,15 @@ button{
     color:white;
     font-weight:bold;
     cursor:pointer;
+}
+
+/* Particles */
+.particle{
+    position:absolute;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    pointer-events:none;
 }
 </style>
 </head>
@@ -72,11 +81,26 @@ let level = 1;
 let score = 0;
 let gridSize = 3;
 
-function randomColor(){
-    return Math.floor(Math.random()*256);
+// Thèmes de couleurs
+const themes = [
+    {name:"Standard", modifier:0},
+    {name:"Pastel", modifier:60},
+    {name:"Néon", modifier:120},
+    {name:"Nature", modifier:-30},
+    {name:"Nuit", modifier:-80}
+];
+
+function randomColor(modifier=0){
+    let r = Math.min(255, Math.max(0, Math.floor(Math.random()*256)+modifier));
+    let g = Math.min(255, Math.max(0, Math.floor(Math.random()*256)+modifier));
+    let b = Math.min(255, Math.max(0, Math.floor(Math.random()*256)+modifier));
+    return {r,g,b};
 }
 
 function startGame(){
+    // Mettre à jour la taille des cases
+    document.documentElement.style.setProperty('--grid-size', gridSize);
+
     document.getElementById("grid").innerHTML="";
     document.getElementById("level").textContent=level;
     document.getElementById("score").textContent=score;
@@ -88,11 +112,12 @@ function startGame(){
     const grid = document.getElementById("grid");
     grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
 
-    let r = randomColor();
-    let g = randomColor();
-    let b = randomColor();
+    // Choisir un thème selon le niveau
+    let themeIndex = Math.min(Math.floor(level/5), themes.length-1);
+    let theme = themes[themeIndex];
 
-    let diff = Math.max(50 - level*3, 5);
+    let baseColor = randomColor(theme.modifier);
+    let diff = Math.max(50 - level*4, 5); // difficulté augmente plus vite
 
     let specialIndex = Math.floor(Math.random() * (gridSize*gridSize));
 
@@ -100,26 +125,69 @@ function startGame(){
         let cell = document.createElement("div");
         cell.classList.add("cell");
 
+        // Définir la couleur
         if(i === specialIndex){
-            cell.style.backgroundColor = `rgb(${r+diff}, ${g}, ${b})`;
-            cell.onclick = win;
+            let specialColor = {
+                r: Math.min(255, baseColor.r + diff),
+                g: Math.min(255, baseColor.g + diff),
+                b: Math.min(255, baseColor.b + diff)
+            };
+            cell.style.backgroundColor = `rgb(${specialColor.r}, ${specialColor.g}, ${specialColor.b})`;
+            cell.onclick = ()=>win(cell);
         }else{
-            cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-            cell.onclick = lose;
+            cell.style.backgroundColor = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+            cell.onclick = ()=>lose();
+        }
+
+        // Définir la forme selon le niveau
+        if(level % 5 === 0){
+            cell.style.borderRadius = '25%'; // ovale
+        }else if(level % 3 === 0){
+            cell.style.borderRadius = '50%'; // rond
+        }else{
+            cell.style.borderRadius = '12px'; // carré
         }
 
         grid.appendChild(cell);
     }
 }
 
-function win(){
+// Animations de particules
+function createParticles(x,y){
+    for(let i=0;i<10;i++){
+        let p = document.createElement("div");
+        p.classList.add("particle");
+        p.style.backgroundColor = `hsl(${Math.random()*360},100%,50%)`;
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+        document.body.appendChild(p);
+
+        let dx = (Math.random()-0.5)*100;
+        let dy = (Math.random()-0.5)*100;
+        let scale = Math.random()*1.5 + 0.5;
+
+        p.animate([
+            {transform:`translate(0px,0px) scale(1)`, opacity:1},
+            {transform:`translate(${dx}px,${dy}px) scale(${scale})`, opacity:0}
+        ],{
+            duration:600,
+            easing:'ease-out'
+        });
+
+        setTimeout(()=>p.remove(),600);
+    }
+}
+
+function win(cell){
     score += 10;
     level++;
+    let rect = cell.getBoundingClientRect();
+    createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
     startGame();
 }
 
 function lose(){
-    alert("Game Over !");
+    alert("❌ Mauvaise case ! Game Over. Ton score : " + score);
     level = 1;
     score = 0;
     gridSize = 3;
