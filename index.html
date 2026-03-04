@@ -81,6 +81,15 @@ let level = 1;
 let score = 0;
 let gridSize = 3;
 
+// Définition des thèmes
+const themes = [
+    {name:"Standard", modifier:0},
+    {name:"Pastel", modifier:60},
+    {name:"Néon", modifier:120},
+    {name:"Nature", modifier:-30},
+    {name:"Nuit", modifier:-80}
+];
+
 function randomColor(modifier=0){
     let r = Math.min(255, Math.max(0, Math.floor(Math.random()*256)+modifier));
     let g = Math.min(255, Math.max(0, Math.floor(Math.random()*256)+modifier));
@@ -89,7 +98,6 @@ function randomColor(modifier=0){
 }
 
 function startGame(){
-    // Mettre à jour la taille des cases
     document.documentElement.style.setProperty('--grid-size', gridSize);
 
     document.getElementById("grid").innerHTML="";
@@ -103,12 +111,11 @@ function startGame(){
     const grid = document.getElementById("grid");
     grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
 
-    // Choisir un thème selon le niveau
     let themeIndex = Math.min(Math.floor(level/5), themes.length-1);
     let theme = themes[themeIndex];
 
     let baseColor = randomColor(theme.modifier);
-    let diff = Math.max(50 - level*4, 5); // difficulté augmente plus vite
+    let diff = Math.max(50 - level*4, 5);
 
     let specialIndex = Math.floor(Math.random() * (gridSize*gridSize));
 
@@ -116,7 +123,6 @@ function startGame(){
         let cell = document.createElement("div");
         cell.classList.add("cell");
 
-        // Définir la couleur
         if(i === specialIndex){
             let specialColor = {
                 r: Math.min(255, baseColor.r + diff),
@@ -130,20 +136,18 @@ function startGame(){
             cell.onclick = ()=>lose();
         }
 
-        // Définir la forme selon le niveau
         if(level % 5 === 0){
-            cell.style.borderRadius = '25%'; // ovale
+            cell.style.borderRadius = '25%';
         }else if(level % 3 === 0){
-            cell.style.borderRadius = '50%'; // rond
+            cell.style.borderRadius = '50%';
         }else{
-            cell.style.borderRadius = '12px'; // carré
+            cell.style.borderRadius = '12px';
         }
 
         grid.appendChild(cell);
     }
 }
 
-// Animations de particules
 function createParticles(x,y){
     for(let i=0;i<10;i++){
         let p = document.createElement("div");
@@ -182,13 +186,6 @@ function lose(){
     level = 1;
     score = 0;
     gridSize = 3;
-   const themes = [
-    {name:"Standard", modifier:0},
-    {name:"Pastel", modifier:60},
-    {name:"Néon", modifier:120},
-    {name:"Nature", modifier:-30},
-    {name:"Nuit", modifier:-80}
-]; 
     startGame();
 }
 
